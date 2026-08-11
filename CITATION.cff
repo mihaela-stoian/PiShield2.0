@@ -10,7 +10,7 @@ authors:
     given-names: Thomas
   - family-names: Giunchiglia
     given-names: Eleonora
-repository-code: "https://github.com/mihaela-stoian/PiShield"
+repository-code: "https://github.com/mihaela-stoian/PiShield-V2"
 license: Apache-2.0
 preferred-citation:
   type: conference-paper

@@ -1,7 +1,7 @@
 site_name: PiShield Documentation
 site_description: A PyTorch Package for Learning with Requirements
-site_url: https://mihaela-stoian.github.io/PiShield/docs/
-repo_url: https://github.com/mihaela-stoian/PiShield
+site_url: https://mihaela-stoian.github.io/PiShield-V2/docs/
+repo_url: https://github.com/mihaela-stoian/PiShield-V2
 repo_name: mihaela-stoian/PiShield
 edit_uri: edit/main/docs/
 

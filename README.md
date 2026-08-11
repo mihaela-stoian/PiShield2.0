@@ -166,7 +166,7 @@ total_loss = task_loss + requirement_loss
 
 ## :arrow_forward: Demo video
 
-A demo video is available for download [here](https://github.com/mihaela-stoian/PiShield/blob/main/extra/video.mp4).
+A demo video is available for download [here](https://github.com/mihaela-stoian/PiShield-V2/blob/main/extra/video.mp4).
 
 
 ## :fire: Performance
