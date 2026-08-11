@@ -58,8 +58,8 @@ corrected = layer(model_output)  # guaranteed to satisfy the requirements
 ## Learn more
 
 - **[API Reference](api/index.md)** — full documentation generated from the source.
-- **[GitHub repository](https://github.com/mihaela-stoian/PiShield-V2)** — source code, examples, and runnable notebooks.
-- **[Project website](https://mihaela-stoian.github.io/PiShield-V2/)** — overview, demos, and performance results.
+- **[GitHub repository](https://github.com/mihaela-stoian/PiShield2.0)** — source code, examples, and runnable notebooks.
+- **[Project website](https://mihaela-stoian.github.io/PiShield2.0/)** — overview, demos, and performance results.
 
 ## Citing PiShield
 

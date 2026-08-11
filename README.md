@@ -27,7 +27,7 @@
 
 ## :sparkles: Description
 
-Update: PiShield's **website** is now available [here](https://mihaela-stoian.github.io/PiShield-V2/).
+Update: PiShield's **website** is now available [here](https://mihaela-stoian.github.io/PiShield2.0/).
 
 PiShield is the first framework ever allowing for the integration of the requirements into the neural networks' topology.
 
@@ -62,7 +62,7 @@ PiShield exposes two main entry points:
 - `build_shield_loss` (from `pishield.shield_loss`) builds the **Memory-efficient Loss**, an additional loss term that *encourages* (but does not guarantee) requirement satisfaction at training time, using t-norms. It is a memory-efficient t-norm loss [5] inspired by Logic Tensor Networks (LTN) [6].
 
 > :rocket: **Runnable examples.** Try all three examples in one click, with no local setup:
-> [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/mihaela-stoian/PiShield-V2/blob/main/examples/general_usage/PiShield_quickstart.ipynb)
+> [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/mihaela-stoian/PiShield2.0/blob/main/examples/general_usage/PiShield_quickstart.ipynb)
 >
 > The [`PiShield_quickstart.ipynb`](examples/general_usage/PiShield_quickstart.ipynb) notebook bundles the three examples below and installs PiShield automatically on Colab. The [`examples/general_usage`](examples/general_usage) folder also contains them as standalone notebooks that run end-to-end with no external downloads:
 > - [`shield_layer_inference.ipynb`](examples/general_usage/shield_layer_inference.ipynb) — correct a network's predictions with a Shield Layer.
@@ -166,7 +166,7 @@ total_loss = task_loss + requirement_loss
 
 ## :arrow_forward: Demo video
 
-A demo video is available for download [here](https://github.com/mihaela-stoian/PiShield-V2/blob/main/extra/video.mp4).
+A demo video is available for download [here](https://github.com/mihaela-stoian/PiShield2.0/blob/main/extra/video.mp4).
 
 
 ## :fire: Performance

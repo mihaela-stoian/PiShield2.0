@@ -1,14 +1,14 @@
 site_name: PiShield Documentation
 site_description: A PyTorch Package for Learning with Requirements
-site_url: https://mihaela-stoian.github.io/PiShield-V2/docs/
-repo_url: https://github.com/mihaela-stoian/PiShield-V2
-repo_name: mihaela-stoian/PiShield-V2
+site_url: https://mihaela-stoian.github.io/PiShield2.0/docs/
+repo_url: https://github.com/mihaela-stoian/PiShield2.0
+repo_name: mihaela-stoian/PiShield2.0
 edit_uri: edit/main/docs/
 
 # Clicking the logo / site title in the header returns to the PiShield landing
 # page (the docs live under /PiShield/docs/, the landing page at /PiShield/).
 extra:
-  homepage: https://mihaela-stoian.github.io/PiShield-V2/
+  homepage: https://mihaela-stoian.github.io/PiShield2.0/
 
 theme:
   name: material
@@ -72,7 +72,7 @@ markdown_extensions:
 
 nav:
   - Home: index.md
-  - "← PiShield site": https://mihaela-stoian.github.io/PiShield-V2/
+  - "← PiShield site": https://mihaela-stoian.github.io/PiShield2.0/
   - API Reference:
       - Overview: api/index.md
       - Shield Layer & Memory-efficient Loss: api/core.md
