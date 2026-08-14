@@ -69,6 +69,9 @@ PiShield exposes two main entry points:
 > - [`shield_layer_training.ipynb`](examples/general_usage/shield_layer_training.ipynb) — train a model with a Shield Layer (and compare against an unconstrained baseline).
 > - [`shield_loss.ipynb`](examples/general_usage/shield_loss.ipynb) — encourage requirement satisfaction with the Memory-efficient Loss.
 
+### :book: Tutorial
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1koNEziF7BNDiREMJ6nWcgvz7JuJp5iVQ)
+
 ### Supported requirement types
 
 The Shield Layer supports three types of requirements, specified as `requirements_type`:
