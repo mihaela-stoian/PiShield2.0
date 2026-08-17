@@ -11,9 +11,9 @@
 * :bulb: [Usage](#bulb-usage)
     - [Runnable examples](#bulb-usage)
     - [Supported requirement types](#supported-requirement-types)
-    - [Inference time: Shield Layer](#inference-time-shield-layer)
     - [Training time: Shield Layer](#training-time-shield-layer)
-    - [Training time: Memory-efficient Loss](#training-time-memory-efficient-loss)
+    - [Inference only: Shield Layer](#inference-only-shield-layer)
+    - [Bonus: Memory-efficient Loss](#bonus-memory-efficient-loss)
 * :arrow_forward: [Demo video](#arrow_forward-demo-video)
 * :fire: [Performance](#fire-performance)
   + [1. Autonomous Driving](#1-autonomous-driving)
@@ -22,20 +22,24 @@
 * [Authorship and maintenance](#authorship-and-maintenance)
 * :memo: [References](#memo-references)
 
-
-**Update**: DRL [4] is now part of PiShield's main branch! PiShield now natively supports **QFLRA** (quantifier-free linear real arithmetic) requirements, in addition to the **linear** and **propositional** requirements previously supported. The framework also ships with a **Memory-efficient Loss** (a memory-efficient t-norm loss [5] inspired by Logic Tensor Networks, LTN [6]) to encourage requirement satisfaction at training time via t-norms.
-
 ## :sparkles: Description
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./extra/overview-dark.svg">
+  <img align="right" width="300" alt="PiShield corrects a neural network's outputs so they are guaranteed to satisfy the given requirements" src="./extra/overview-light.svg">
+</picture>
 
 Update: PiShield's **website** is now available [here](https://mihaela-stoian.github.io/PiShield2.0/).
 
-PiShield is the first framework ever allowing for the integration of the requirements into the neural networks' topology.
+PiShield is the first framework ever allowing for the integration of requirements directly into a neural network's topology.
 
-:white_check_mark: The integration happens in a straightforward and efficient manner and allows for the creation of deep learning models that are guaranteed to be compliant with the given requirements, no matter the input.
+:white_check_mark: **Guaranteed compliance.** The integration is straightforward and efficient, producing deep learning models whose outputs are guaranteed to satisfy the given requirements, no matter the input.
 
-:pencil2: The requirements can be integrated both at inference and/or training time, depending on the practitioners' needs.
+:pencil2: **Inference and training.** The requirements can be integrated at inference time and at training time, depending on the practitioners' needs.
 
-<img height="240" src="./extra/overview.png" width="400"/>
+:link: **Expressive requirements.** PiShield supports hierarchical, propositional, linear, and quantifier-free linear real arithmetic (QFLRA) requirements — from class hierarchies to boolean logic to numerical constraints.
+
+:zap: **Drop-in and differentiable.** A Shield Layer is a single differentiable layer you add on top of any model, so gradients flow through it and it fits into existing training loops with minimal changes.
 
 ## :pushpin: Dependencies
 PiShield requires Python 3.8 or later and PyTorch.
@@ -57,9 +61,7 @@ pip install .
 
 ## :bulb: Usage
 
-PiShield exposes two main entry points:
-- `build_shield_layer` (from `pishield.shield_layer`) builds a **Shield Layer**, a differentiable layer that corrects a model's outputs so that they are *guaranteed* to satisfy the given requirements. It can be used both at inference time and at training time.
-- `build_shield_loss` (from `pishield.shield_loss`) builds the **Memory-efficient Loss**, an additional loss term that *encourages* (but does not guarantee) requirement satisfaction at training time, using t-norms. It is a memory-efficient t-norm loss [5] inspired by Logic Tensor Networks (LTN) [6].
+PiShield's main entry point is `build_shield_layer` (from `pishield.shield_layer`), which builds a **Shield Layer**: a differentiable layer that corrects a model's outputs so that they are *guaranteed* to satisfy the given requirements, at inference time and at training time.
 
 > :rocket: **Runnable examples.** Try all three examples in one click, with no local setup:
 > [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/mihaela-stoian/PiShield2.0/blob/main/examples/general_usage/PiShield_quickstart.ipynb)
@@ -74,17 +76,20 @@ PiShield exposes two main entry points:
 
 ### Supported requirement types
 
-The Shield Layer supports three types of requirements, specified as `requirements_type`:
+The Shield Layer supports four types of requirements, specified as `requirements_type`:
 
 | `requirements_type` | Description | Example line |
 |---------------------|-------------|--------------|
+| `hierarchical`      | Class hierarchies (subsumption): whenever a class holds, all of its ancestors hold. | `0 :- 1` (if class `1` holds, its parent `0` holds) |
+| `propositional`     | Propositional (Boolean) constraints, written either as Horn rules (`head :- body`) or as disjunctive clauses. | `0 :- 1 n2` or `y_0 or not y_1 or y_2` |
 | `linear`            | Linear inequality constraints over real variables. | `y_0 - y_1 >= 0` |
 | `qflra`             | Quantifier-free linear real arithmetic: disjunctions (`or`) and negations (`neg`) of linear inequalities [4]. | `y1 - 2y2 > 0 or neg y3 >= 0` |
-| `propositional`     | Propositional (Boolean) constraints, written either as Horn rules (`head :- body`) or as disjunctive clauses. | `0 :- 1 n2` or `y_0 or not y_1 or y_2` |
+
+Hierarchical requirements are positive Horn rules `parent :- child` describing the class hierarchy (a subset of the propositional format). Alternatively, pass an **`.arff` dataset file** directly — the common format for hierarchical multi-label datasets such as the FUN/GO benchmarks: PiShield reads the hierarchy from the file's header (auto-detecting whether it is stored as full root-to-node **paths** or as **parent/child edges**; override with `arff_hierarchy_style='paths'` or `'edges'`).
 
 In the propositional Horn format, literals are variable indices, with an `n` prefix denoting negation (e.g. `n2` is the negation of variable `2`); in the clause format, literals are written as `y_<index>` and negated with `not`.
 
-By default `requirements_type='auto'`, in which case PiShield inspects the requirements file and selects the appropriate layer automatically. When in doubt — in particular for propositional clauses, whose `or` keyword overlaps with the QFLRA syntax — pass `requirements_type` explicitly.
+By default `requirements_type='auto'`, in which case PiShield inspects the requirements file and selects the appropriate layer automatically (an `.arff` file is always read as `hierarchical`). When in doubt — in particular for propositional clauses, whose `or` keyword overlaps with the QFLRA syntax, or for hierarchical `.txt` rules, which are also valid propositional files — pass `requirements_type` explicitly.
 
 Each requirements file must start with an `ordering` line listing the variables. For example, a file `example_constraints_tabular.txt` with linear requirements:
 ```
@@ -99,15 +104,28 @@ The signature of `build_shield_layer` is:
 ```
 build_shield_layer(
     num_variables: int,            # number of variables, matching the last dimension of the tensors to correct
-    requirements_filepath: str,    # path to a txt file containing the requirements
+    requirements_filepath: str,    # path to a txt file (or an .arff dataset, for hierarchical) with the requirements
     ordering_choice: str = 'given',# 'given', 'random', or a custom ordering
     custom_ordering: List = None,  # optional custom ordering (propositional only)
-    requirements_type='auto',      # 'auto', 'linear', 'qflra' or 'propositional'
+    requirements_type='auto',      # 'auto', 'hierarchical', 'propositional', 'linear' or 'qflra'
+    arff_hierarchy_style='auto',   # for .arff hierarchical files: 'auto', 'paths' or 'edges'
 )
 ```
 
-### Inference time: Shield Layer
-To correct predictions at inference time such that they satisfy the requirements, we can use PiShield as follows:
+### Training time: Shield Layer
+The Shield Layer is differentiable, hence it can be applied *during* training: build it once (typically in the model's constructor with `build_shield_layer`) and apply it to the model's raw outputs before computing the loss. Because gradients flow back through the correction, the model learns to produce outputs that already satisfy the requirements. This is how, for instance, the Shield Layer constrains a deep generative model for tabular data [1], where the outputs have no ground-truth labels.
+
+In a **fully supervised** setting — the typical case for `propositional` and `hierarchical` requirements, where every output has a ground-truth label — you should also pass the labels to the layer as `goal`:
+```
+corrected = shield_layer(model_output, goal=labels)
+loss = criterion(corrected, labels)
+```
+The reason is that the Shield Layer enforces a requirement by *propagating* scores between the variables it links — for example, in the hierarchical case a class's corrected score becomes the maximum over its own subtree, so a descendant can raise its ancestors. If this propagation used the predictions alone, the model could satisfy a requirement through the *wrong* variable: a false-positive descendant could pull its parent up to match a positive parent label, so the loss would never penalise (and the model would never learn to fix) the actual mistake. Passing the ground truth as `goal` makes the correction respect which variables are truly active in each example, so the gradient is directed at the prediction that genuinely needs to change. Concretely, the hierarchical layer corrects a *positive* class with the maximum over its **true** descendants (`goal * predictions`), pushing the model to raise a genuinely relevant descendant rather than accept a spurious one, and a *negative* class with the ordinary correction — this reproduces C-HMCNN's max-constraint loss [3].
+
+For a full supervised example, see [`examples/shield_layer_hierarchical.ipynb`](examples/shield_layer_hierarchical.ipynb), which trains and tests a hierarchical multi-label classifier on the cellcycle dataset.
+
+### Inference only: Shield Layer
+The Shield Layer can also be used purely at inference, to make an **already-trained** model's outputs satisfy the requirements without retraining — for example, to constrain a model you cannot or do not want to fine-tune. You build the layer once and apply it to the model's predictions; no `goal` and no gradients are involved. For instance, with linear requirements:
 ```
 import torch
 from pishield.shield_layer import build_shield_layer
@@ -118,35 +136,12 @@ constraints_path = 'example_constraints_tabular.txt'
 num_variables = predictions.shape[-1]
 shield_layer = build_shield_layer(num_variables, constraints_path)
 
-# apply the Shield Layer from PiShield to get the corrected predictions
-corrected_predictions = shield_layer(predictions.clone())  # returns tensor([[ 3., -2., -3.]]), which satisfies the constraints
+# correct the predictions so they satisfy the requirements
+corrected_predictions = shield_layer(predictions.clone())  # tensor([[ 3., -2., -3.]]), which satisfies the constraints
 ```
 
-```
-import torch
-from pishield.shield_layer import build_shield_layer
-
-def correct_predictions(predictions: torch.Tensor, constraints_path: str):
-    num_variables = predictions.shape[-1]
-
-    # build a Shield Layer using PiShield
-    shield_layer = build_shield_layer(num_variables, constraints_path)
-
-    # apply PiShield to get corrected predictions, which satisfy the constraints
-    corrected_predictions = shield_layer(predictions)
-    return corrected_predictions
-```
-
-### Training time: Shield Layer
-Assume a Deep Generative Model (DGM) is used to obtain synthetic tabular data.
-Using the Shield Layer at training time is easy, as it requires two steps:
-1. Building a Shield Layer with `build_shield_layer` in the DGM's constructor.
-2. Applying the Shield Layer on the generated data obtained from the DGM before computing the loss function of the DGM.
-
-Because the Shield Layer is differentiable, gradients flow back through the correction, so the model learns to produce outputs that satisfy the requirements.
-
-### Training time: Memory-efficient Loss
-As an alternative (or complement) to the Shield Layer, PiShield provides a **Memory-efficient Loss** for **propositional** requirements — a memory-efficient t-norm loss [5] inspired by Logic Tensor Networks (LTN) [6]. Instead of correcting the outputs, it adds a penalty term computed via a t-norm (`godel`, `product` or `lukasiewicz`) that pushes the model towards satisfying the requirements.
+### Bonus: Memory-efficient Loss
+PiShield also provides a **Memory-efficient Loss** for **propositional** requirements — a memory-efficient t-norm loss [5] inspired by Logic Tensor Networks (LTN) [6]. The loss adds a penalty term computed via a t-norm (`godel`, `product` or `lukasiewicz`) that pushes the model towards satisfying the requirements. In order to make keep the memory requirements at a minimum, the loss is implemented using sparse matrices.
 
 The Memory-efficient Loss expects requirements in the Horn-rule format `<id> <head> :- <body>`, where `<id>` is a constraint identifier, and the head and body literals are variable indices (with an `n` prefix denoting negation). For example, a file `example_requirements.txt`:
 ```
@@ -233,7 +228,7 @@ Below we aggregated the results from Table 3 of [3] and reported the performance
 As we can see, the models **Shield layers** outperform their standard counterparts.
 
 
-| Dataset    | Baseline* | PiShield  |
+| Dataset    | Baseline* | PiShield**  |
 |------------|-----------|-----------|
 | CELLCYCLE  | 0.220     | **0.232** |
 | DERISI     | 0.179     | **0.182** |
@@ -248,6 +243,7 @@ As we can see, the models **Shield layers** outperform their standard counterpar
 
 *Note: All baselines for the functional genomics scenario have a postprocessing step included, as functional genomics tasks always require that the constraints are satisfied.
 
+**Note: The results reported here differ from those in [3], as the C-HMCNN model in [3] is further retrained on the combined training and validation sets.
 
 ## Authorship and maintenance
 
@@ -282,7 +278,7 @@ If you use PiShield, please cite:
 }
 ```
 
-Depending on which feature you use, please additionally cite: the Shield Layer with linear requirements [1], with QFLRA requirements [4], or with propositional requirements [2]; and the Memory-efficient Loss with propositional requirements [5] (in addition to LTN [6]).
+Depending on which feature you use, please additionally cite: the Shield Layer with hierarchical requirements [3], with propositional requirements [2], with linear requirements [1], or with QFLRA requirements [4]; and the Memory-efficient Loss with propositional requirements [5] (in addition to LTN [6]).
 
 ## :memo: References
 
